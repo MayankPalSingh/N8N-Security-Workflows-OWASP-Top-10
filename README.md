@@ -198,14 +198,6 @@ Copy the ngrok URL - you'll need to update it in the workflow HTTP Request nodes
 **7. Run and explore**
 - Start with LLM07 (simplest, just a chat agent) and work your way up to LLM08 (most complex, RAG + ChromaDB)
 
-### Difficulty Levels
-
-| Difficulty | Workflows | What You Need |
-|-----------|-----------|---------------|
-| 🟢 Beginner | LLM07, LLM09, LLM10 | Just n8n + OpenAI key |
-| 🟡 Intermediate | LLM01, LLM02, LLM05, LLM06 | n8n + OpenAI/Groq + basic n8n knowledge |
-| 🔴 Advanced | LLM03, LLM04, LLM08 | n8n + OpenAI + ChromaDB + ngrok + vector DB concepts |
-
 ---
 
 ## 📁 Repository Structure
