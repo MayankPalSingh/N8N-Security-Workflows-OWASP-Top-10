@@ -127,13 +127,17 @@ All demos are built in n8n, showing how visual workflow automation can be used f
 
 > Add your workflow screenshots to a `screenshots/` folder and uncomment the lines below.
 
-<!-- 
+
+### Workflows
+![Workflows](llm-top-10/screenshots/screenshot-1.png)
+![Workflows](llm-top-10/screenshots/screenshot-2.png)
+<!--
 ### LLM01 - Prompt Injection (Vulnerable vs. Defended)
 ![LLM01 Workflow](screenshots/llm01-prompt-injection.png)
 
 ### LLM08 - RAG Data Leakage & Mitigation
 ![LLM08 Workflow](screenshots/llm08-rag-data-leakage.png)
-
+ 
 ### LLM08 - Cross-Tenant Data Leakage
 ![LLM08 Cross Tenant](screenshots/llm08-cross-tenant.png)
 
