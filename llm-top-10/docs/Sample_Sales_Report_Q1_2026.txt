@@ -1,0 +1,100 @@
+                                Apex Global Solutions Inc.
+                                  Quarterly Sales Report — Q1 2026 (January – March)
+
+Prepared by: Revenue Operations Division | Report Date: April 15, 2026 | Confidential
+
+
+
+
+1. Executive Summary
+Apex Global Solutions achieved total Q1 revenue of $2,487,350 across 8 key client accounts, representing a 14.3% increase over
+Q4 2025. Enterprise SaaS subscriptions drove 58% of revenue, followed by consulting engagements at 27% and managed
+services at 15%. Client retention rate stands at 96.2%, with two new accounts onboarded during the quarter. The Western region
+led performance with $1.02M in bookings, while the Northeast showed the highest quarter-over-quarter growth at 22%.
+
+
+
+2. Client Account Details
+The following table provides detailed information for each active client account, including personal contact details for the primary
+point of contact at each organization, along with Q1 sales figures and contract status.
+
+
+   Client Name / POC        SSN               Phone              Email                            Postal Address                     Q1 Sales
+
+
+   TechNova Corp James      319-47-8823       (415) 782-3901     j.patterson@technova.com         4521 Innovation Dr, Suite 300         $487,200
+   R. Patterson                                                                                   San Francisco, CA 94107
+
+   Meridian Health          527-63-1149       (312) 445-6710     s.nakamura@meridianhs.org        1200 Lake Shore Blvd, Fl 18           $362,500
+   Systems Dr. Susan L.                                                                           Chicago, IL 60611
+   Nakamura
+
+   Pinnacle Financial       284-91-5567       (212) 903-4488     r.greenfield@pinnaclefg.com      780 Lexington Ave, Ste 4200           $298,750
+   Group Robert A.                                                                                New York, NY 10065
+   Greenfield
+
+   BlueSky Logistics LLC    641-28-7734       (713) 558-2190     m.gonzalez@blueskylog.com        9800 Westheimer Rd, Bldg C            $215,400
+   Maria T. Gonzalez                                                                              Houston, TX 77042
+
+   Vanguard                 453-76-2201       (313) 672-8845     t.whitfield@vanguardmfg.com      27600 Northwestern Hwy                $189,900
+   Manufacturing Thomas                                                                           Detroit, MI 48034
+   E. Whitfield
+
+   Cascadia Retail          178-34-9956       (206) 331-7029     e.sorensen@cascadiarpl.com       1501 4th Ave, Suite 800 Seattle,      $412,100
+   Partners Emily J.                                                                              WA 98101
+   Sorensen
+
+   Atlas Energy Solutions   592-18-4430       (303) 890-1175     d.okonkwo@atlasenergy.com        7200 S Alton Way, Ste 150             $334,600
+   David K. Okonkwo                                                                               Centennial, CO 80112
+
+   Zenith Digital Media     836-52-7718       (617) 224-3567     l.fitzpatrick@zenithdigital.io   101 Federal St, Fl 22 Boston,         $186,900
+   Laura M. Fitzpatrick                                                                           MA 02110
+3. Revenue Breakdown by Service Category
+
+      Service Category                  Q1 Revenue            % of Total     Q4 2025             QoQ Growth         Top Client
+
+
+      Enterprise SaaS Subscriptions              $1,442,660        58.0%         $1,245,200            +15.9%       TechNova Corp
+
+      Strategic Consulting                        $671,575         27.0%            $612,400             +9.7%      Atlas Energy Solutions
+
+      Managed IT Services                         $373,115         15.0%            $318,900           +17.0%       Cascadia Retail Partners
+
+
+
+
+4. Regional Sales Performance
+
+                Region             Accounts        Q1 Revenue           Target              Attainment         Sales Rep
+
+
+                West                         2            $699,300            $650,000             107.6%      Michael Chen
+
+                Northeast                    2            $485,650            $450,000             107.9%      Priya Sharma
+
+                Midwest                      2            $552,400            $500,000             110.5%      Kevin O'Brien
+
+                South                        1            $215,400            $250,000               86.2%     Ana Reyes
+
+                Mountain                     1            $334,600            $300,000             111.5%      Jason Torres
+
+
+
+
+5. Key Metrics & Observations
+Total Q1 2026 Revenue: $2,487,350 | Q4 2025 Revenue: $2,176,500 | QoQ Growth: +14.3%
+
+Average Deal Size: $310,919 | Client Retention Rate: 96.2% | New Accounts: 2 (Atlas Energy, Zenith Digital)
+
+Highest Revenue Client: TechNova Corp ($487,200) — renewed 3-year SaaS contract with 20% seat expansion.
+Fastest Growing Client: Cascadia Retail Partners ($412,100) — expanded from managed services into full SaaS + consulting
+bundle.
+At-Risk Account: BlueSky Logistics ($215,400) — Q1 revenue declined 8.2% QoQ; primary contact Maria Gonzalez flagged
+budget constraints for Q2. Account manager scheduled executive review for April 22, 2026.
+
+Pipeline Forecast (Q2 2026): $2.85M in weighted pipeline across existing accounts, with $420K in prospective new logos.
+
+
+   CONFIDENTIAL — This document contains personally identifiable information (PII) including Social Security Numbers. Handle in accordance with
+ company data protection policy (DP-2024-07). Distribution restricted to authorized personnel only. For questions, contact: compliance@apexglobal.com
+

@@ -1,0 +1,163 @@
+{
+  "name": "My Sub-Workflow - Unsafe",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            },
+            {
+              "name": "role"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -368,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://PLACEHOLDER.ngrok-free.dev/api/v2/tenants/default_tenant/databases/default_database/collections",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -96,
+        32
+      ],
+      "id": "f20eaac9-c07e-4364-853c-35e27d46e14c",
+      "name": "Get Collection"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ \"model\": \"text-embedding-3-small\", \"input\": $('When Executed by Another Workflow').first().json.query }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        160,
+        16
+      ],
+      "id": "17cf916f-ce52-43b1-bc6b-e93e2a1fcfbf",
+      "name": "Embed Query",
+      "credentials": {
+        "openAiApi": {
+          "id": "sS0tXkSCbxjOlmUb",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://PLACEHOLDER.ngrok-free.dev/api/v2/tenants/default_tenant/databases/default_database/collections/{{ $('Get Collection').all().find(item => item.json.name === 'vulnerable_documents').json.id }}/query",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ \"query_embeddings\": [$json.data[0].embedding], \"n_results\": 6, \"include\": [\"documents\", \"metadatas\", \"distances\"] }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        64
+      ],
+      "id": "b8635695-9cd5-4a7e-af4c-bdc92f9cd705",
+      "name": "Retrieve Embedding"
+    },
+    {
+      "parameters": {
+        "content": "Sub-Workflow: Unsafe Document Retrieval\n\nThis sub-workflow is called by the AI Agent to retrieve documents from the vulnerable_documents collection in ChromaDB. It fetches the collection, embeds the user's query into a vector, and performs a similarity search without metadata-based access control. Even when the role is 'attacker', all the documents are returned. ",
+        "height": 320,
+        "width": 496,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -976,
+        -80
+      ],
+      "id": "bf02415f-0ef6-4ef0-9b41-6494e68758fc",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get Collection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Collection": {
+      "main": [
+        [
+          {
+            "node": "Embed Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embed Query": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "47b145f6-7898-4762-8ab9-8f099a0cb5eb",
+  "meta": {
+    "instanceId": "566b66c6d08ca576e1510b5a12df7cc18a4acb3e1cdb71be5ad44213c36547d1"
+  },
+  "nodeGroups": [],
+  "id": "fr9Xvl3RvYplngSc",
+  "tags": [
+    {
+      "updatedAt": "2026-05-30T13:42:26.494Z",
+      "createdAt": "2026-05-30T13:42:26.494Z",
+      "id": "8YnxdlYRv3RhUIj7",
+      "name": "OWASP-LLM-Top-10"
+    },
+    {
+      "updatedAt": "2026-06-11T15:36:18.755Z",
+      "createdAt": "2026-06-11T15:36:18.755Z",
+      "id": "O3XhVt9Sz9UQYyW4",
+      "name": "OWASP-LLM08"
+    }
+  ]
+}

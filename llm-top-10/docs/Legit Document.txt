@@ -1,0 +1,13 @@
+Document Title:ACME Product Catalog
+
+Document Content: ACME offers three subscription plans: Standard Plan ($29/month): Up to 5 users, 10 GB storage, email support. Ideal for freelancers and small teams.
+
+Professional Plan ($79/month): Up to 25 users, 100 GB storage, priority support, advanced analytics. Our most popular plan, best for growing teams of 5-25.
+
+Enterprise Plan ($199/month): Unlimited users, 1 TB storage, dedicated account manager, SSO, SLA guarantee. Designed for large organizations.
+
+All plans include a 14-day free trial and core platform access. Annual billing saves 20%.
+
+The Professional plan includes all Standard features plus: advanced analytics dashboard, priority email and chat support, custom integrations, and team management tools.
+
+The Enterprise plan includes all Professional features plus: dedicated account manager, single sign-on (SSO), 99.9% uptime SLA, custom onboarding, and phone support.

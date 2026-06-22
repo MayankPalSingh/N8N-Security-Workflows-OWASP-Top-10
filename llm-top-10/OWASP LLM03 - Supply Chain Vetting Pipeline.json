@@ -1,0 +1,363 @@
+{
+  "name": "OWASP LLM03 - Supply Chain Vetting Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## OWASP LLM03 — Supply Chain\n### Pre-deployment vetting pipeline\n\n\nThis workflow demonstrates a pre-deployment vetting pipeline for Python packages. Before installing any package via pip install, the workflow gathers signals from PyPI (metadata, author, license, release history) and OSV.dev (known CVEs), applies heuristic red/green flag analysis, and uses an LLM as a security analyst to produce a structured risk verdict. It shows how LLMs can be used defensively to assess supply chain risk — catching typosquats, flagging vulnerable packages, and synthesizing trust signals that simple heuristics miss.\n\nThis workflow teaches the **defensive habit**: before you `pip install` anything into an LLM stack, gather signals and make an informed trust decision.\n\n**How it works:**\n1. User types a PyPI package name into the chat (e.g. `transformers`, `langchain`, or a suspicious-sounding one).\n2. The workflow fetches metadata from **PyPI** (author, age, releases, license, dependencies, project URLs).\n3. It cross-references against **OSV.dev** for known CVEs.\n4. A Code node extracts and normalizes red/green flags from both sources.\n5. An LLM acts as a supply-chain security analyst, weighing all signals and producing a risk verdict.\n6. The chat returns a formatted risk report.\n\n**Setup:**\n- Create an HTTP Header Auth credential named `OpenAI API Key`\n  - Name: `Authorization`\n  - Value: `Bearer YOUR_OPENAI_API_KEY`\n- Attach it to the `LLM Risk Assessment` HTTP Request node.\n- Activate the workflow.\n\n**No PyPI or OSV credentials needed** — both APIs are public.\n\n**Try it with:**\n- Well-known packages: `requests`, `transformers`, `numpy`\n- LLM-ecosystem packages: `langchain`, `llama-index`, `openai`\n- Suspicious / typosquat-style names to see how the signals differ",
+        "height": 744,
+        "width": 580,
+        "color": 4
+      },
+      "id": "7a87bbe7-bef4-420d-96f2-7dff1277d505",
+      "name": "Intro Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        96,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "public": true,
+        "options": {
+          "responseMode": "responseNode"
+        }
+      },
+      "id": "8d84851c-ca2f-48d0-bdaa-8e48dab57ab3",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        624
+      ],
+      "webhookId": "llm03-supply-chain-demo",
+      "notesInFlow": true,
+      "notes": "Receives a Python package name from the user via the chat interface. This is the entry point for the supply chain vetting pipeline."
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n// Parse the chat message to extract a PyPI package name.\n// Handles natural phrasing like:\n//   \"check transformers\"\n//   \"is langchain safe?\"\n//   \"vet openai\"\n//   \"transformers\"   (just the name)\n// Defaults to 'langchain' if the message is empty or unclear.\n// ============================================================\nconst raw = ($input.first().json.chatInput || '').trim();\n\nconst cleaned = raw\n  .replace(/^(check|vet|scan|analyze|inspect|audit|is|evaluate|review)\\s+/i, '')\n  .replace(/\\s+(safe|secure|ok|risky|vulnerable|compromised|trustworthy|legit|legitimate)\\??$/i, '')\n  .replace(/^(the\\s+)?(package|library|module|dependency|pip\\s+package|pypi\\s+package)\\s+/i, '')\n  .replace(/^(pypi|pip)\\s*[:\\/]\\s*/i, '')\n  .replace(/[\"'`]/g, '')\n  .trim()\n  .split(/\\s+/)[0] || '';  // take first word if multiple remain\n\nconst package_name = cleaned || 'langchain';\n\nreturn [{\n  json: {\n    package_name,\n    original_input: raw,\n    session_id: $input.first().json.sessionId || 'default'\n  }\n}];"
+      },
+      "id": "8868d84f-92c6-44cf-8717-c2c47b10566c",
+      "name": "Parse Package Name",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        624
+      ],
+      "notesInFlow": true,
+      "notes": "Extracts and sanitizes the package name from the user's chat input. Prepares the clean package name for downstream API queries."
+    },
+    {
+      "parameters": {
+        "content": "### Step 1 — Fetch PyPI metadata\nPublic API, no auth. Returns author, license, version history, project URLs, dependencies, classifiers, description — the raw material for trust decisions.\n\n`onError: continueRegularOutput` means a 404 (package doesn't exist) won't crash the workflow.",
+        "height": 364,
+        "width": 500,
+        "color": 6
+      },
+      "id": "73cfa619-35b7-457d-a47e-2f7acb1372ae",
+      "name": "PyPI Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        704,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://pypi.org/pypi/{{ $json.package_name }}/json",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "0e07d172-13e5-4547-8b65-15dc2adf37d5",
+      "name": "Fetch PyPI Metadata",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        592,
+        624
+      ],
+      "notesInFlow": true,
+      "notes": "Queries the PyPI public API to retrieve package metadata, author, version, license, release history, dependencies, project URLs, and description. A 404 response means the package does not exist on PyPI."
+    },
+    {
+      "parameters": {
+        "content": "### Step 2 — Check OSV.dev for known CVEs\nPublic vulnerability database maintained by Google. Returns a list of known vulnerabilities for the package in the PyPI ecosystem.\n\nThis is the same database that `pip-audit` and `osv-scanner` query under the hood.",
+        "height": 348,
+        "width": 500,
+        "color": 6
+      },
+      "id": "d2cc1c49-7673-44d0-b75f-4f13f1cae992",
+      "name": "OSV Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        704,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.osv.dev/v1/query",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"package\": {\n    \"name\": {{ JSON.stringify($('Parse Package Name').first().json.package_name) }},\n    \"ecosystem\": \"PyPI\"\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "77290948-7e1c-40de-8398-0335c612025d",
+      "name": "Check OSV.dev Vulnerabilities",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        624
+      ],
+      "notesInFlow": true,
+      "notes": "Queries Google's OSV.dev vulnerability database for known CVEs associated with the package. Returns vulnerability IDs, severity ratings, and summaries. This is the same database used by pip-audit and osv-scanner."
+    },
+    {
+      "parameters": {
+        "content": "### Step 3 — Extract & normalize signals\nThe Code node pulls key metrics from both the PyPI and OSV responses into a single structured object. It also applies simple heuristic flags:\n- Package age < 30 days → flag\n- No source repo URL → flag\n- Known CVEs → flag with count and severities\n- Very few releases → flag\n- Author on free email for corporate-looking package → flag\n- No license → flag\n- Suspicious name similarity to popular packages → flag",
+        "height": 356,
+        "width": 492,
+        "color": 3
+      },
+      "id": "3f2a4fcf-bf5f-4704-8954-59c00d4fce9b",
+      "name": "Signals Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n// Extract and normalize supply-chain signals from PyPI + OSV\n// ============================================================\nconst pypiRaw = $('Fetch PyPI Metadata').first().json;\nconst osvRaw  = $input.first().json;\nconst pkgName = $('Parse Package Name').first().json.package_name;\n\n// --- Handle PyPI 404 / error ---\nconst pypiOk = !!(pypiRaw?.info?.name);\nif (!pypiOk) {\n  return [{\n    json: {\n      package_name: pkgName,\n      pypi_found: false,\n      osv_vulns: [],\n      signals: {},\n      flags: ['PACKAGE_NOT_FOUND: This package does not exist on PyPI. If you expected it to exist, this itself is a supply-chain signal — verify the spelling and source.'],\n      flag_count: 1\n    }\n  }];\n}\n\nconst info = pypiRaw.info;\nconst releases = pypiRaw.releases || {};\nconst releaseNames = Object.keys(releases);\n\n// --- Compute age from earliest release ---\nlet firstReleaseDate = null;\nlet lastReleaseDate = null;\nfor (const ver of releaseNames) {\n  const files = releases[ver] || [];\n  for (const f of files) {\n    const d = f.upload_time ? new Date(f.upload_time) : null;\n    if (d) {\n      if (!firstReleaseDate || d < firstReleaseDate) firstReleaseDate = d;\n      if (!lastReleaseDate  || d > lastReleaseDate)  lastReleaseDate = d;\n    }\n  }\n}\n\nconst now = new Date();\nconst ageDays = firstReleaseDate ? Math.floor((now - firstReleaseDate) / 86400000) : null;\nconst daysSinceLastRelease = lastReleaseDate ? Math.floor((now - lastReleaseDate) / 86400000) : null;\n\n// --- Extract project URLs ---\nconst projectUrls = info.project_urls || {};\nconst hasSourceRepo = Object.values(projectUrls).some(u =>\n  /github\\.com|gitlab\\.com|bitbucket\\.org|codeberg\\.org/i.test(u)\n);\nconst homepage = info.home_page || projectUrls['Homepage'] || projectUrls['Home'] || null;\n\n// --- OSV vulnerabilities ---\nconst vulns = (osvRaw?.vulns || []).map(v => ({\n  id: v.id,\n  summary: (v.summary || '').slice(0, 120),\n  severity: v.database_specific?.severity || v.severity?.[0]?.score || 'unknown',\n  published: v.published || null\n}));\n\n// --- Dependencies ---\nconst deps = (info.requires_dist || []).map(d => d.split(';')[0].split(/[<>=!\\[]/)[0].trim());\n\n// --- Known popular packages (for typosquat check) ---\nconst popular = [\n  'requests','numpy','pandas','flask','django','transformers','torch','tensorflow',\n  'langchain','openai','anthropic','scikit-learn','scipy','boto3','fastapi','celery',\n  'pillow','matplotlib','pydantic','httpx','aiohttp','beautifulsoup4','selenium'\n];\n\nconst levenshtein = (a, b) => {\n  const m = a.length, n = b.length;\n  const dp = Array.from({length: m+1}, (_,i) => {\n    const row = new Array(n+1);\n    row[0] = i;\n    return row;\n  });\n  for (let j = 0; j <= n; j++) dp[0][j] = j;\n  for (let i = 1; i <= m; i++)\n    for (let j = 1; j <= n; j++)\n      dp[i][j] = Math.min(\n        dp[i-1][j] + 1,\n        dp[i][j-1] + 1,\n        dp[i-1][j-1] + (a[i-1] !== b[j-1] ? 1 : 0)\n      );\n  return dp[m][n];\n};\n\nconst typosquatCandidates = popular\n  .filter(p => p !== pkgName && levenshtein(p, pkgName) <= 2 && levenshtein(p, pkgName) > 0)\n  .slice(0, 3);\n\n// --- Build signals object ---\nconst signals = {\n  name: info.name,\n  version: info.version,\n  author: info.author || info.maintainer || 'unknown',\n  author_email: info.author_email || info.maintainer_email || 'unknown',\n  license: info.license || 'NOT SPECIFIED',\n  summary: (info.summary || '').slice(0, 200),\n  homepage,\n  has_source_repo: hasSourceRepo,\n  project_urls: projectUrls,\n  total_releases: releaseNames.length,\n  first_release: firstReleaseDate ? firstReleaseDate.toISOString().slice(0, 10) : 'unknown',\n  latest_release: lastReleaseDate ? lastReleaseDate.toISOString().slice(0, 10) : 'unknown',\n  age_days: ageDays,\n  days_since_last_release: daysSinceLastRelease,\n  python_requires: info.requires_python || 'any',\n  dependency_count: deps.length,\n  dependencies: deps.slice(0, 20),\n  known_vulnerabilities: vulns.length,\n  vulnerability_details: vulns.slice(0, 10),\n  typosquat_similar_to: typosquatCandidates\n};\n\n// --- Heuristic flags ---\nconst flags = [];\n\nif (ageDays !== null && ageDays < 30)\n  flags.push(`VERY_NEW: Package is only ${ageDays} days old. New packages have no track record.`);\nif (ageDays !== null && ageDays < 180 && ageDays >= 30)\n  flags.push(`YOUNG: Package is ${ageDays} days old (< 6 months). Exercise caution.`);\nif (!hasSourceRepo)\n  flags.push('NO_SOURCE_REPO: No GitHub/GitLab/Bitbucket link found. Cannot inspect source code.');\nif (!info.license || info.license === 'UNKNOWN')\n  flags.push('NO_LICENSE: No license specified. Unusual for legitimate packages.');\nif (releaseNames.length <= 2)\n  flags.push(`FEW_RELEASES: Only ${releaseNames.length} release(s). Low maturity signal.`);\nif (vulns.length > 0)\n  flags.push(`KNOWN_CVES: ${vulns.length} known vulnerability(ies) in OSV database.`);\nif (typosquatCandidates.length > 0)\n  flags.push(`TYPOSQUAT_RISK: Name is suspiciously close to: ${typosquatCandidates.join(', ')}.`);\nif (daysSinceLastRelease !== null && daysSinceLastRelease > 730)\n  flags.push(`STALE: Last release was ${daysSinceLastRelease} days ago (> 2 years). May be abandoned.`);\nif (/gmail\\.com|yahoo\\.com|hotmail\\.com|outlook\\.com/i.test(info.author_email || ''))\n  flags.push('FREE_EMAIL_AUTHOR: Maintainer uses a free email provider. Not inherently bad, but notable for high-profile packages.');\nif (deps.length > 30)\n  flags.push(`HEAVY_DEPS: ${deps.length} dependencies. Large attack surface.`);\nif (!info.summary || info.summary.length < 10)\n  flags.push('SPARSE_DESCRIPTION: Very short or missing package description.');\n\n// Green signals\nif (ageDays !== null && ageDays > 365 * 2) flags.push(`ESTABLISHED: Package is ${Math.floor(ageDays/365)} years old.`);\nif (releaseNames.length > 20) flags.push(`ACTIVE_DEVELOPMENT: ${releaseNames.length} releases show ongoing maintenance.`);\nif (vulns.length === 0) flags.push('CLEAN_CVE: No known vulnerabilities in OSV database.');\nif (hasSourceRepo) flags.push('HAS_SOURCE: Public source repository available for inspection.');\n\nreturn [{\n  json: {\n    package_name: pkgName,\n    pypi_found: true,\n    signals,\n    flags,\n    flag_count: flags.length,\n    red_flags: flags.filter(f => !['ESTABLISHED','ACTIVE_DEVELOPMENT','CLEAN_CVE','HAS_SOURCE'].some(g => f.startsWith(g))),\n    green_flags: flags.filter(f => ['ESTABLISHED','ACTIVE_DEVELOPMENT','CLEAN_CVE','HAS_SOURCE'].some(g => f.startsWith(g)))\n  }\n}];"
+      },
+      "id": "5e71283c-4faf-43e5-a814-0f9bdf9f2620",
+      "name": "Extract & Analyze Signals",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        624
+      ],
+      "notesInFlow": true,
+      "notes": "Code node that combines PyPI metadata and OSV.dev results into a single structured object. Applies heuristic rules to generate red and green flags, package age, source repo presence, known CVEs, release frequency, author email domain, license availability, and typosquat name similarity."
+    },
+    {
+      "parameters": {
+        "content": "### Step 4 — LLM risk assessment\nThe LLM receives ALL extracted signals and heuristic flags. Its job is to weigh them holistically (a human analyst would do the same) and produce a structured risk verdict with reasoning.\n\nThis demonstrates the value of LLMs as a reasoning layer over structured data — the heuristic flags catch obvious patterns, but the LLM can synthesize context (e.g. \"new package from a known author is lower risk than new package from an unknown author\").",
+        "height": 344,
+        "width": 492,
+        "color": 3
+      },
+      "id": "13351097-2e89-4099-9a2a-63984266d3d6",
+      "name": "LLM Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.1-8b-instant\",\n  \"temperature\": 0.2,\n  \"response_format\": { \"type\": \"json_object\" },\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a supply-chain security analyst specializing in Python / LLM ecosystems. You will receive structured metadata about a PyPI package (author, age, releases, license, dependencies, known CVEs, heuristic flags). Your job is to weigh these signals holistically — the way a human security reviewer would — and produce a risk verdict.\\n\\nReturn ONLY valid JSON with this shape:\\n{\\n  \\\"risk_level\\\": \\\"LOW\\\" | \\\"MEDIUM\\\" | \\\"HIGH\\\" | \\\"CRITICAL\\\",\\n  \\\"confidence\\\": 0.0 to 1.0,\\n  \\\"verdict\\\": \\\"2-3 sentence summary of overall assessment\\\",\\n  \\\"key_concerns\\\": [\\\"array of specific concerns, empty if none\\\"],\\n  \\\"positive_signals\\\": [\\\"array of trust-building signals\\\"],\\n  \\\"recommendations\\\": [\\\"array of concrete next-step actions\\\"]\\n}\\n\\nGuidelines:\\n- A well-established, actively maintained package with no CVEs is LOW risk.\\n- Known CVEs bump risk by at least one level; unpatched critical CVEs are CRITICAL.\\n- Very new packages (< 30 days) from unknown authors start at HIGH.\\n- Typosquat similarity to popular packages is a serious red flag.\\n- Missing source repo or license is concerning but not conclusive on its own.\\n- Consider the combination of signals, not each flag in isolation.\\n- Be direct and practical. This verdict will inform a go/no-go decision.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify('Package to assess: ' + $json.package_name + '\\n\\nSignals:\\n' + JSON.stringify($json.signals, null, 2) + '\\n\\nHeuristic flags:\\n' + $json.flags.join('\\n')) }}\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "ea6180d5-6466-4f7d-b1f2-4a31d98fa02b",
+      "name": "LLM Risk Assessment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1248,
+        624
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "83SFl4t5XYdKGRoq",
+          "name": "Header Auth account"
+        },
+        "httpBearerAuth": {
+          "id": "D2pkGgkV7DeApmTX",
+          "name": "Bearer Auth account"
+        }
+      },
+      "notes": "Sends all extracted signals and heuristic flags to an LLM acting as a supply-chain security analyst. The LLM weighs the signals holistically and produces a structured risk verdict with risk level, confidence score, key concerns, and recommendations. Demonstrates the value of LLMs as a reasoning layer over structured data."
+    },
+    {
+      "parameters": {
+        "jsCode": "const llmRaw = $input.first().json.choices?.[0]?.message?.content || '{}';\nconst signalData = $('Extract & Analyze Signals').first().json;\nconst pkgName = signalData.package_name;\n\nif (!signalData.pypi_found) {\n  return [{ json: { output: `Package \"${pkgName}\" not found on PyPI.\\n\\nThis package does not exist in the PyPI registry. If you expected it to exist, double-check the spelling.\\n\\nA package that should exist but doesn't is itself a supply-chain signal — someone may have removed it, or you may have a typo that an attacker could register as a typosquat.` } }];\n}\n\nlet verdict;\ntry {\n  verdict = JSON.parse(llmRaw);\n} catch (e) {\n  verdict = {\n    risk_level: 'UNKNOWN',\n    confidence: 0,\n    verdict: 'LLM response was not valid JSON. Raw: ' + llmRaw.slice(0, 200),\n    key_concerns: [],\n    positive_signals: [],\n    recommendations: ['Retry the assessment.']\n  };\n}\n\nconst riskEmoji = { LOW: '🟢', MEDIUM: '🟡', HIGH: '🟠', CRITICAL: '🔴', UNKNOWN: '⚪' }[verdict.risk_level] || '⚪';\nconst s = signalData.signals;\n\nconst lines = [];\n\nlines.push(`${riskEmoji} Supply Chain Assessment: ${pkgName}`);\nlines.push(`Risk level: ${verdict.risk_level} (confidence: ${verdict.confidence})`);\nlines.push(`Verdict: ${verdict.verdict}`);\nlines.push('');\nlines.push('📦 Package Profile');\nlines.push(`Version: ${s.version}`);\nlines.push(`Author: ${s.author} (${s.author_email})`);\nlines.push(`License: ${s.license}`);\nlines.push(`Age: ${s.age_days !== null ? Math.floor(s.age_days / 365) + ' years (' + s.age_days + ' days)' : 'unknown'} — first release: ${s.first_release}`);\nlines.push(`Latest release: ${s.latest_release} (${s.days_since_last_release} days ago)`);\nlines.push(`Total releases: ${s.total_releases}`);\nlines.push(`Dependencies: ${s.dependency_count}`);\nlines.push(`Source repo: ${s.has_source_repo ? 'Yes' : 'Not found'}`);\nlines.push(`Known CVEs: ${s.known_vulnerabilities}`);\nlines.push('');\n\nif (s.typosquat_similar_to && s.typosquat_similar_to.length > 0) {\n  lines.push(`⚠️ Typosquat alert: Name is similar to: ${s.typosquat_similar_to.join(', ')}`);\n  lines.push('');\n}\n\nif (s.vulnerability_details && s.vulnerability_details.length > 0) {\n  lines.push('🛡️ Known Vulnerabilities');\n  for (const v of s.vulnerability_details.slice(0, 5)) {\n    lines.push(`- ${v.id} — ${v.summary || 'No summary'} (severity: ${v.severity})`);\n  }\n  if (s.vulnerability_details.length > 5) lines.push(`...and ${s.vulnerability_details.length - 5} more`);\n  lines.push('');\n}\n\nif (signalData.red_flags.length > 0) {\n  lines.push('🚩 Red Flags');\n  for (const f of signalData.red_flags) lines.push(`- ${f}`);\n  lines.push('');\n}\n\nif (signalData.green_flags.length > 0) {\n  lines.push('✅ Positive Signals');\n  for (const f of signalData.green_flags) lines.push(`- ${f}`);\n  lines.push('');\n}\n\nif (verdict.key_concerns && verdict.key_concerns.length > 0) {\n  lines.push('⚠️ Key Concerns');\n  for (const c of verdict.key_concerns) lines.push(`- ${c}`);\n  lines.push('');\n}\n\nif (verdict.recommendations && verdict.recommendations.length > 0) {\n  lines.push('💡 Recommendations');\n  for (const r of verdict.recommendations) lines.push(`- ${r}`);\n}\n\nreturn [{ json: { output: lines.join('\\n') } }];"
+      },
+      "id": "5606f486-34e0-4ca8-9a43-a3c17e5e0ae9",
+      "name": "Format Chat Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        624
+      ],
+      "notesInFlow": true,
+      "notes": "Formats the LLM's risk verdict and extracted signals into a clean, readable report for the chat interface. Includes package profile, vulnerability details, red/green flags, key concerns, and recommendations."
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "id": "c4032c8f-a32e-48eb-b729-d9572659511c",
+      "name": "Respond to Chat",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1680,
+        624
+      ],
+      "notesInFlow": true,
+      "notes": "Returns the formatted supply chain assessment report to the user via the chat interface. The user receives a complete risk analysis to inform their decision before installing the package."
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse Package Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Package Name": {
+      "main": [
+        [
+          {
+            "node": "Fetch PyPI Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch PyPI Metadata": {
+      "main": [
+        [
+          {
+            "node": "Check OSV.dev Vulnerabilities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check OSV.dev Vulnerabilities": {
+      "main": [
+        [
+          {
+            "node": "Extract & Analyze Signals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract & Analyze Signals": {
+      "main": [
+        [
+          {
+            "node": "LLM Risk Assessment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Risk Assessment": {
+      "main": [
+        [
+          {
+            "node": "Format Chat Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Chat Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ecf41ba8-2515-4316-834e-b77a18a9a6d5",
+  "meta": {
+    "instanceId": "566b66c6d08ca576e1510b5a12df7cc18a4acb3e1cdb71be5ad44213c36547d1"
+  },
+  "nodeGroups": [],
+  "id": "RCMIZMiXtZqylrMK",
+  "tags": [
+    {
+      "updatedAt": "2026-05-30T13:42:26.494Z",
+      "createdAt": "2026-05-30T13:42:26.494Z",
+      "id": "8YnxdlYRv3RhUIj7",
+      "name": "OWASP-LLM-Top-10"
+    }
+  ]
+}

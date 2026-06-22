@@ -1,0 +1,171 @@
+{
+  "name": "My Sub-Workflow - Safe",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            },
+            {
+              "name": "role"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -224,
+        80
+      ],
+      "notesInFlow": true,
+      "notes": "Receives the query, and role parameters from the main workflow's AI Agent via the Call n8n Workflow Tool node."
+    },
+    {
+      "parameters": {
+        "url": "https://PLACEHOLDER.ngrok-free.dev/api/v2/tenants/default_tenant/databases/default_database/collections",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        64,
+        80
+      ],
+      "id": "ac78d2fe-ddf3-4369-af11-b34d02696d87",
+      "name": "Get Collection",
+      "notesInFlow": true,
+      "notes": "Fetches all available collections from ChromaDB to dynamically resolve the safe_documents collection ID. This avoids hardcoding the collection ID in the workflow.\n"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ \"model\": \"text-embedding-3-small\", \"input\": $('When Executed by Another Workflow').first().json.query }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        352,
+        64
+      ],
+      "id": "c82518e9-f519-4574-afd1-35652d4ab97d",
+      "name": "Embed Query",
+      "notesInFlow": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "sS0tXkSCbxjOlmUb",
+          "name": "OpenAI account"
+        }
+      },
+      "notes": "Converts the user's text query into a vector embedding using OpenAI's text-embedding-3-small model. This is required because ChromaDB performs similarity search using vectors, not raw text.\n"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://PLACEHOLDER.ngrok-free.dev/api/v2/tenants/default_tenant/databases/default_database/collections/{{ $('Get Collection').all().find(item => item.json.name === 'safe_documents').json.id }}/query",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({ \"query_embeddings\": [$json.data[0].embedding], \"n_results\": 6, \"include\": [\"documents\", \"metadatas\", \"distances\"] }, $('When Executed by Another Workflow').first().json.role === 'attacker' ? { \"where\": { \"classification\": \"public\" } } : {})) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        656,
+        80
+      ],
+      "id": "621f24c0-eccc-436f-8744-c53dd69d70bb",
+      "name": "Retrieve Embedding",
+      "notesInFlow": true,
+      "notes": "Queries the safe_documents collection in ChromaDB with the embedded vector. Applies metadata filtering based on the role parameter, restricts results to public documents for attackers, returns all documents for legit users.\n\n"
+    },
+    {
+      "parameters": {
+        "content": "Sub-Workflow: Safe Document Retrieval\n\nThis sub-workflow is called by the AI Agent to retrieve documents from the safe_documents collection in ChromaDB. It fetches the collection, embeds the user's query into a vector, and performs a similarity search with metadata-based access control. When the role is 'attacker', only public documents are returned. When the role is 'legit', all documents are accessible.",
+        "height": 256,
+        "width": 480,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        16
+      ],
+      "id": "f4007b1b-f792-4781-ba0f-f408350102d5",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get Collection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Collection": {
+      "main": [
+        [
+          {
+            "node": "Embed Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embed Query": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "929ae20e-8ade-4415-98a3-b8c03907b61a",
+  "meta": {
+    "instanceId": "566b66c6d08ca576e1510b5a12df7cc18a4acb3e1cdb71be5ad44213c36547d1"
+  },
+  "nodeGroups": [],
+  "id": "MDypQY0fHkkVzIXF",
+  "tags": [
+    {
+      "updatedAt": "2026-05-30T13:42:26.494Z",
+      "createdAt": "2026-05-30T13:42:26.494Z",
+      "id": "8YnxdlYRv3RhUIj7",
+      "name": "OWASP-LLM-Top-10"
+    },
+    {
+      "updatedAt": "2026-06-11T15:36:18.755Z",
+      "createdAt": "2026-06-11T15:36:18.755Z",
+      "id": "O3XhVt9Sz9UQYyW4",
+      "name": "OWASP-LLM08"
+    }
+  ]
+}

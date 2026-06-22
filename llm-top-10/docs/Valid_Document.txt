@@ -1,0 +1,12 @@
+ACME Corp - API Security Policy v2.1 (Effective January 2025)
+
+All API endpoints must enforce OAuth 2.0 authentication with short-lived access tokens (15-minute expiry).
+API keys must be rotated every 90 days and stored in HashiCorp Vault. Plain-text storage is strictly prohibited.
+Rate limiting is enforced at 100 requests per minute per user. Exceeding this triggers a 30-minute cooldown.
+All API traffic must use TLS 1.3 encryption. HTTP connections are automatically rejected at the gateway.
+Input validation is mandatory on all endpoints. SQL injection and XSS payloads are blocked by the WAF.
+Admin API endpoints are restricted to internal VPN access only. No public internet exposure is allowed.
+All API calls are logged to the SIEM with full request/response metadata for a retention period of 12 months.
+Third-party API integrations require security review and approval from the AppSec team before deployment.
+API credentials must never be committed to source code repositories. Pre-commit hooks enforce this policy.
+Incident response for API breaches follows the standard SLA: P1 critical within 15 minutes, P2 high within 1 hour.

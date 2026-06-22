@@ -1,0 +1,176 @@
+{
+  "name": "My Sub-Workflow - Tenant",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            },
+            {
+              "name": "tenant"
+            }
+          ]
+        }
+      },
+      "id": "6fa2b4a2-db43-437e-80b2-2d55e7c77052",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -224,
+        320
+      ],
+      "notesInFlow": true,
+      "notes": "Receives the query and tenant parameters from the main workflow's AI Agent. The tenant value determines whether metadata filtering is applied during retrieval."
+    },
+    {
+      "parameters": {
+        "url": "https://PLACEHOLDER.ngrok-free.dev/api/v2/tenants/default_tenant/databases/default_database/collections",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        64,
+        288
+      ],
+      "id": "9ba451ab-fc91-473b-8121-a2dbab2dfeb8",
+      "name": "Get Collection",
+      "notesInFlow": true,
+      "notes": "Fetches all available collections from ChromaDB to dynamically resolve the shared_tenant_db collection ID without hardcoding it.\n"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ \"model\": \"text-embedding-3-small\", \"input\": $('When Executed by Another Workflow').first().json.query }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        368,
+        320
+      ],
+      "id": "34eb0310-7ba6-4ad6-8e72-0ea062bcff5e",
+      "name": "Embed Query",
+      "notesInFlow": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "sS0tXkSCbxjOlmUb",
+          "name": "OpenAI account"
+        }
+      },
+      "notes": "Converts the user's text query into a vector embedding using OpenAI's text-embedding-3-small model. Required for similarity search in ChromaDB."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://PLACEHOLDER.ngrok-free.dev/api/v2/tenants/default_tenant/databases/default_database/collections/{{ $('Get Collection').all().find(item => item.json.name === 'shared_tenant_db').json.id }}/query",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({ \"query_embeddings\": [$('Embed Query').first().json.data[0].embedding], \"n_results\": 6, \"include\": [\"documents\", \"metadatas\", \"distances\"] }, $('When Executed by Another Workflow').first().json.tenant !== 'null' ? { \"where\": { \"tenant\": $('When Executed by Another Workflow').first().json.tenant } } : {})) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        672,
+        352
+      ],
+      "id": "f87593ea-baca-49c0-a458-7ebe8e8dd7dc",
+      "name": "Retrieve Embedding",
+      "notesInFlow": true,
+      "notes": "Queries the shared_tenant_db collection with the embedded vector. When tenant is 'null', returns documents from all tenants. When tenant is specified, applies a metadata filter to return only that tenant's documents."
+    },
+    {
+      "parameters": {
+        "content": "Sub-Workflow: Tenant-Based Document Retrieval\n\nThis sub-workflow queries the shared_tenant_db collection in ChromaDB. When tenant is 'null', no filtering is applied and documents from all tenants are returned, demonstrating cross-tenant leakage. When tenant is 'company_a' or 'company_b', a metadata filter is applied to return only that tenant's documents.",
+        "height": 240,
+        "width": 528,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -816,
+        16
+      ],
+      "typeVersion": 1,
+      "id": "83576167-cf6b-4f3d-9655-8d3ef21a1bf4",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get Collection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Collection": {
+      "main": [
+        [
+          {
+            "node": "Embed Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embed Query": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Embedding": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "434b9675-b913-4e7e-a079-ac362d64f999",
+  "meta": {
+    "instanceId": "566b66c6d08ca576e1510b5a12df7cc18a4acb3e1cdb71be5ad44213c36547d1"
+  },
+  "nodeGroups": [],
+  "id": "y5FPfSsJtbRpuCj9",
+  "tags": [
+    {
+      "updatedAt": "2026-05-30T13:42:26.494Z",
+      "createdAt": "2026-05-30T13:42:26.494Z",
+      "id": "8YnxdlYRv3RhUIj7",
+      "name": "OWASP-LLM-Top-10"
+    },
+    {
+      "updatedAt": "2026-06-11T15:36:18.755Z",
+      "createdAt": "2026-06-11T15:36:18.755Z",
+      "id": "O3XhVt9Sz9UQYyW4",
+      "name": "OWASP-LLM08"
+    }
+  ]
+}

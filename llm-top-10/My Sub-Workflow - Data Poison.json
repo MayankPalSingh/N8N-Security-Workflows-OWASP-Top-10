@@ -1,0 +1,152 @@
+{
+  "name": "My Sub-Workflow - Data Poison",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "id": "8f07ce5b-15b9-4643-adec-1203ae1be293",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -224,
+        320
+      ],
+      "notesInFlow": true,
+      "notes": "Receives the query parameter from the main workflow's AI Agent via the Call n8n Workflow Tool node.\n"
+    },
+    {
+      "parameters": {
+        "url": "https://PLACEHOLDER.ngrok-free.dev/api/v2/tenants/default_tenant/databases/default_database/collections",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        32,
+        320
+      ],
+      "id": "3b1d4d4c-b862-411a-8ff3-42ae2ae12f3f",
+      "name": "Get Collection",
+      "notesInFlow": true,
+      "notes": "Fetches all available collections from ChromaDB to dynamically resolve the Data_db collection ID without hardcoding it.\n"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ \"model\": \"text-embedding-3-small\", \"input\": $('When Executed by Another Workflow').first().json.query }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        368,
+        320
+      ],
+      "id": "50b536c3-a60b-44ff-b29c-0bf86f49fddc",
+      "name": "Embed Query",
+      "notesInFlow": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "sS0tXkSCbxjOlmUb",
+          "name": "OpenAI account"
+        }
+      },
+      "notes": "Converts the user's text query into a vector embedding using OpenAI's text-embedding-3-small model. Required for similarity search against stored document vectors."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://PLACEHOLDER.ngrok-free.dev/api/v2/tenants/default_tenant/databases/default_database/collections/{{ $('Get Collection').all().find(item => item.json.name === 'Data_db').json.id }}/query",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ \"query_embeddings\": [$('Embed Query').first().json.data[0].embedding], \"n_results\": 6, \"include\": [\"documents\", \"metadatas\", \"distances\"] }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        672,
+        320
+      ],
+      "id": "b1173045-8463-460b-95c2-45e406a32b2c",
+      "name": "Retrieve Embedding",
+      "notesInFlow": true,
+      "notes": "Queries the Data_db collection with the embedded vector and returns the most similar documents. No source validation or trust scoring is applied, poisoned and valid documents are treated equally."
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get Collection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Collection": {
+      "main": [
+        [
+          {
+            "node": "Embed Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embed Query": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "f2ff3eca-a4e8-45ab-b228-526cb67d26e4",
+  "meta": {
+    "instanceId": "566b66c6d08ca576e1510b5a12df7cc18a4acb3e1cdb71be5ad44213c36547d1"
+  },
+  "nodeGroups": [],
+  "id": "OYiEf7JCbVnQO3Ih",
+  "tags": [
+    {
+      "updatedAt": "2026-05-30T13:42:26.494Z",
+      "createdAt": "2026-05-30T13:42:26.494Z",
+      "id": "8YnxdlYRv3RhUIj7",
+      "name": "OWASP-LLM-Top-10"
+    },
+    {
+      "updatedAt": "2026-06-11T15:36:18.755Z",
+      "createdAt": "2026-06-11T15:36:18.755Z",
+      "id": "O3XhVt9Sz9UQYyW4",
+      "name": "OWASP-LLM08"
+    }
+  ]
+}
