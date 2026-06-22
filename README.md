@@ -125,9 +125,6 @@ All demos are built in n8n, showing how visual workflow automation can be used f
 
 ## 📸 Screenshots
 
-> Add your workflow screenshots to a `screenshots/` folder and uncomment the lines below.
-
-
 ### Workflows
 ![Workflows](llm-top-10/screenshots/Screenshot_1.png)
 
