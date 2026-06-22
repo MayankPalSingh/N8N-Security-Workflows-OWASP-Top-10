@@ -6,13 +6,13 @@
   <img src="https://img.shields.io/github/stars/MayankPalSingh/N8N-Security-Workflows-OWASP-Top-10?style=for-the-badge" alt="Stars"/>
 </p>
 
-# 🛡️ N8N Security Workflows — OWASP Top 10 for LLM Applications
+# 🛡️ N8N Security Workflows - OWASP Top 10 for LLM Applications
 
 > **See it break. Understand why. Learn how to fix it.**
 
-Hands-on n8n workflows that bring the [OWASP Top 10 for LLM Applications (2025)](https://owasp.org/www-project-top-10-for-large-language-model-applications/) to life with **real attack simulations**, **vulnerable vs. mitigated comparisons**, and **interactive demos** — all built using visual workflow automation.
+Hands-on n8n workflows that bring the [OWASP Top 10 for LLM Applications (2025)](https://owasp.org/www-project-top-10-for-large-language-model-applications/) to life with **real attack simulations**, **vulnerable vs. mitigated comparisons**, and **interactive demos** - all built using visual workflow automation.
 
-This isn't just documentation — it's a working security lab. Every vulnerability has a fully functional n8n workflow you can import, execute, and learn from. Attack it, defend it, and understand exactly how LLM security risks manifest in real-world applications.
+This isn't just documentation - it's a working security lab. Every vulnerability has a fully functional n8n workflow you can import, execute, and learn from. Attack it, defend it, and understand exactly how LLM security risks manifest in real-world applications.
 
 <!-- Add a screenshot of your n8n canvas here -->
 <!-- ![Workflow Overview](screenshots/workflow-overview.png) -->
@@ -42,11 +42,11 @@ Reading about LLM vulnerabilities is one thing. **Watching an AI agent leak prod
 
 This project bridges the gap between theory and practice. Security professionals and AI developers can:
 
-- **See vulnerabilities in action** — not just read about them in a PDF
+- **See vulnerabilities in action** - not just read about them in a PDF
 - **Compare vulnerable vs. mitigated implementations** side-by-side in the same workflow
-- **Understand the full attack chain** — from ingestion to exploitation to data exfiltration
-- **Test their own defenses** — modify the workflows, add guardrails, and verify they hold
-- **Train their teams** — use these as live demos in security awareness sessions and workshops
+- **Understand the full attack chain** - from ingestion to exploitation to data exfiltration
+- **Test their own defenses** - modify the workflows, add guardrails, and verify they hold
+- **Train their teams** - use these as live demos in security awareness sessions and workshops
 
 Every workflow is self-contained, documented on-canvas with sticky notes, and designed to run out of the box.
 
@@ -57,7 +57,7 @@ Every workflow is self-contained, documented on-canvas with sticky notes, and de
 | Role | How You'll Use This |
 |------|-------------------|
 | **AppSec Engineers** | Understand LLM-specific attack surfaces and validate RAG pipeline security controls |
-| **Red Teamers / Pentesters** | Learn LLM exploitation techniques — prompt injection, data poisoning, system prompt extraction |
+| **Red Teamers / Pentesters** | Learn LLM exploitation techniques - prompt injection, data poisoning, system prompt extraction |
 | **AI/ML Developers** | See how common architectural decisions (no metadata, no output filtering, shared vector DBs) create vulnerabilities |
 | **Security Trainers** | Ready-made interactive demos for workshops, bootcamps, and security awareness sessions |
 | **CTF Creators** | Adapt these workflows into capture-the-flag challenges for AI security competitions |
@@ -85,7 +85,7 @@ Each vulnerability maps to one or more n8n workflows with attack simulations and
 | **LLM09** | [Misinformation](https://genai.owasp.org/llmrisk/llm09-misinformation/) | Grounded vs. ungrounded agents | LLM fabricates company policies with confident but false details | Knowledge base grounding, honest fallback responses |
 | **LLM10** | [Unbounded Consumption](https://genai.owasp.org/llmrisk/llm10-unbounded-consumption/) | Token exploitation demos | Input floods, denial of wallet, resource-intensive queries, model extraction | Rate limiting, token budgets, input validation |
 
-### LLM08 Deep Dive — Three Sub-Scenarios
+### LLM08 Deep Dive - Three Sub-Scenarios
 
 LLM08 (Vector & Embedding Weaknesses) is explored through three separate workflows to cover distinct attack patterns:
 
@@ -105,19 +105,19 @@ Beyond understanding the OWASP LLM Top 10, you'll gain practical experience with
 End-to-end understanding of document ingestion → text chunking → embedding generation → vector storage → semantic retrieval → LLM response generation. See exactly where security controls are needed at each stage.
 
 ### Vector Databases & Embeddings
-Hands-on experience with ChromaDB — creating collections, generating embeddings via OpenAI's API, performing similarity search, and understanding how metadata filtering works at the database level.
+Hands-on experience with ChromaDB - creating collections, generating embeddings via OpenAI's API, performing similarity search, and understanding how metadata filtering works at the database level.
 
 ### Human-in-the-Loop (HITL) Workflows
-LLM06 demonstrates four levels of agent autonomy — from fully autonomous (dangerous) to human-approved (safe). Learn how to design approval workflows that prevent AI agents from executing destructive actions without oversight.
+LLM06 demonstrates four levels of agent autonomy - from fully autonomous (dangerous) to human-approved (safe). Learn how to design approval workflows that prevent AI agents from executing destructive actions without oversight.
 
 ### Metadata-Based Access Control
-LLM08 shows how tagging documents with classification metadata (public, confidential, restricted) and tenant identifiers enables fine-grained access control in vector databases — a critical pattern for multi-tenant AI applications.
+LLM08 shows how tagging documents with classification metadata (public, confidential, restricted) and tenant identifiers enables fine-grained access control in vector databases, a critical pattern for multi-tenant AI applications.
 
 ### Prompt Injection Defense Layers
-LLM01 implements a three-layer defense architecture — input classification, hardened system prompts, and deterministic output validation. Understand defense-in-depth for LLM applications.
+LLM01 implements a three-layer defense architecture, input classification, hardened system prompts, and deterministic output validation. Understand defense-in-depth for LLM applications.
 
 ### Supply Chain Vetting
-LLM03 builds a complete package vetting pipeline combining PyPI metadata analysis, OSV.dev vulnerability checks, heuristic red/green flag scoring, and LLM-powered risk assessment — a practical blueprint for supply chain security.
+LLM03 builds a complete package vetting pipeline combining PyPI metadata analysis, OSV.dev vulnerability checks, heuristic red/green flag scoring, and LLM-powered risk assessment, a practical blueprint for supply chain security.
 
 ### Workflow Automation for Security
 All demos are built in n8n, showing how visual workflow automation can be used for security testing, red team simulations, and building security-aware AI pipelines.
@@ -129,22 +129,22 @@ All demos are built in n8n, showing how visual workflow automation can be used f
 > Add your workflow screenshots to a `screenshots/` folder and uncomment the lines below.
 
 <!-- 
-### LLM01 — Prompt Injection (Vulnerable vs. Defended)
+### LLM01 - Prompt Injection (Vulnerable vs. Defended)
 ![LLM01 Workflow](screenshots/llm01-prompt-injection.png)
 
-### LLM08 — RAG Data Leakage & Mitigation
+### LLM08 - RAG Data Leakage & Mitigation
 ![LLM08 Workflow](screenshots/llm08-rag-data-leakage.png)
 
-### LLM08 — Cross-Tenant Data Leakage
+### LLM08 - Cross-Tenant Data Leakage
 ![LLM08 Cross Tenant](screenshots/llm08-cross-tenant.png)
 
-### LLM08 — Data Poisoning
+### LLM08 - Data Poisoning
 ![LLM08 Data Poison](screenshots/llm08-data-poison.png)
 
-### LLM06 — Excessive Agency (4 Scenarios)
+### LLM06 - Excessive Agency (4 Scenarios)
 ![LLM06 Workflow](screenshots/llm06-excessive-agency.png)
 
-### LLM03 — Supply Chain Vetting Pipeline
+### LLM03 - Supply Chain Vetting Pipeline
 ![LLM03 Workflow](screenshots/llm03-supply-chain.png)
 -->
 
@@ -180,7 +180,7 @@ chroma run --host 0.0.0.0 --port 6333
 ```bash
 ngrok http 6333
 ```
-Copy the ngrok URL — you'll need to update it in the workflow HTTP Request nodes.
+Copy the ngrok URL - you'll need to update it in the workflow HTTP Request nodes.
 
 **4. Import workflows into n8n**
 - Open n8n → Settings → Import from File
@@ -196,7 +196,7 @@ Copy the ngrok URL — you'll need to update it in the workflow HTTP Request nod
 - Update webhook URLs if using a different n8n instance
 
 **7. Run and explore**
-- Start with LLM07 (simplest — just a chat agent) and work your way up to LLM08 (most complex — RAG + ChromaDB)
+- Start with LLM07 (simplest, just a chat agent) and work your way up to LLM08 (most complex, RAG + ChromaDB)
 
 ### Difficulty Levels
 
@@ -256,9 +256,9 @@ This project is actively expanding to cover the full spectrum of AI security ris
 
 | Phase | Category | Status |
 |-------|---------|--------|
-| ✅ Phase 1 | **OWASP LLM Top 10 (2025)** | Complete — 10 vulnerabilities, 14 workflows |
-| 🔜 Phase 2 | **OWASP MCP Top 10** | Coming Soon — Model Context Protocol security risks |
-| 🔜 Phase 3 | **OWASP Agentic Security Top 10** | Coming Soon — Autonomous AI agent security risks |
+| ✅ Phase 1 | **OWASP LLM Top 10 (2025)** | Complete - 10 vulnerabilities, 14 workflows |
+| 🔜 Phase 2 | **OWASP MCP Top 10** | Coming Soon - Model Context Protocol security risks |
+| 🔜 Phase 3 | **OWASP Agentic Security Top 10** | Coming Soon - Autonomous AI agent security risks |
 
 Follow this repo or star it to get notified when new phases drop.
 
@@ -271,7 +271,7 @@ These workflows are designed for **educational and authorized security research 
 - **Do not** use these against systems without explicit authorization
 - **Do not** use the attack payloads outside of controlled lab environments
 - All PII data in demo documents (SSNs, names, addresses, financials) is **entirely fictional**
-- The vulnerable configurations are deliberately insecure for educational purposes — never replicate them in production
+- The vulnerable configurations are deliberately insecure for educational purposes - never replicate them in production
 
 ---
 
@@ -296,21 +296,15 @@ To contribute:
 
 ## 📄 License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## 👤 Author
 
-**Mayank Pal Singh** — Security Professional & AI Security Researcher
+**Mayank Pal Singh** - Security Professional
 
 [![GitHub](https://img.shields.io/badge/GitHub-MayankPalSingh-black?style=flat-square&logo=github)](https://github.com/MayankPalSingh)
-
----
-
-## ⭐ Support This Project
-
-If these workflows helped you understand LLM security risks, learn RAG pipeline architecture, or run a security training session — please give this repo a **⭐ star**. It helps others discover the project and motivates continued development.
 
 ---
 
