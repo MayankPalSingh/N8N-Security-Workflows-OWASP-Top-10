@@ -129,7 +129,7 @@ All demos are built in n8n, showing how visual workflow automation can be used f
 
 
 ### Workflows
-![Workflows](llm-top-10/screenshots/screenshot_1.png)
+![Workflows](llm-top-10/screenshots/Screenshot_1.png)
 
 <!--
 ### LLM01 - Prompt Injection (Vulnerable vs. Defended)
