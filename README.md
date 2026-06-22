@@ -30,7 +30,6 @@ This isn't just documentation - it's a working security lab. Every vulnerability
 - [Repository Structure](#-repository-structure)
 - [Roadmap](#-roadmap)
 - [Disclaimer](#%EF%B8%8F-disclaimer)
-- [Contributing](#-contributing)
 - [License](#-license)
 - [Author](#-author)
 
@@ -264,25 +263,6 @@ These workflows are designed for **educational and authorized security research 
 - **Do not** use the attack payloads outside of controlled lab environments
 - All PII data in demo documents (SSNs, names, addresses, financials) is **entirely fictional**
 - The vulnerable configurations are deliberately insecure for educational purposes - never replicate them in production
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! You can help by:
-
-- Adding new attack scenarios or mitigations to existing workflows
-- Creating workflows for MCP Top 10 or Agentic Security Top 10
-- Improving documentation or adding translations
-- Reporting issues or suggesting enhancements
-- Sharing your workshop/training experience using these workflows
-
-To contribute:
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-attack-scenario`)
-3. Commit your changes (`git commit -m 'Add LLM01 bypass technique'`)
-4. Push to the branch (`git push origin feature/new-attack-scenario`)
-5. Open a Pull Request
 
 ---
 
