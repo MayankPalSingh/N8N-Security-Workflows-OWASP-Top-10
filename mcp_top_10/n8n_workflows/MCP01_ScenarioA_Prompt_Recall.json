@@ -1,0 +1,289 @@
+{
+  "name": "MCP01 - Scenario A: Prompt Recall Exposure",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "aaaaaaaa-0001-0001-0001-000000000001",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-001",
+              "name": "developer_session_id",
+              "value": "dev-session-001",
+              "type": "string"
+            },
+            {
+              "id": "assign-002",
+              "name": "attacker_session_id",
+              "value": "attacker-session-999",
+              "type": "string"
+            },
+            {
+              "id": "assign-003",
+              "name": "fake_api_key",
+              "value": "sk-prod-FAKE1234abcd5678efgh9012ijkl3456mnop7890",
+              "type": "string"
+            },
+            {
+              "id": "assign-004",
+              "name": "scenario",
+              "value": "MCP01 - Scenario A: Prompt Recall Exposure",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "aaaaaaaa-0001-0001-0002-000000000001",
+      "name": "Setup Scenario Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are simulating a TWO-STEP attack scenario for MCP01 (Token Mismanagement).\n\nSTEP 1 — Developer action (session_id = 'dev-session-001'):\nCall mcp01_store_secret_vulnerable with:\n  - secret_name = 'openai_api_key'\n  - secret_value = 'sk-prod-FAKE1234abcd5678efgh9012ijkl3456mnop7890'\n\nSTEP 2 — Attacker action (different session, no prior knowledge):\nCall mcp01_recall_context_vulnerable with no arguments.\nReport exactly what was returned.\n\nFinally, summarize: Was the secret successfully extracted by the attacker? What does this demonstrate about shared context memory?",
+        "options": {
+          "systemMessage": "You are a security demonstration assistant for OWASP MCP Top 10. You must follow the exact steps given, call the specified tools in order, and report the raw tool outputs faithfully. Do not fabricate responses — only report what the tools actually return. Label your output clearly as [VULNERABLE DEMONSTRATION]."
+        }
+      },
+      "id": "aaaaaaaa-0001-0001-0003-000000000001",
+      "name": "Vulnerable Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [500, 160]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "id": "aaaaaaaa-0001-0001-0004-000000000001",
+      "name": "OpenAI (Vulnerable)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [380, 40],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "https://YOUR_RAILWAY_URL.railway.app/sse"
+      },
+      "id": "aaaaaaaa-0001-0001-0005-000000000001",
+      "name": "MCP Vulnerable Tools",
+      "type": "@n8n/n8n-nodes-langchain.toolMcp",
+      "typeVersion": 1,
+      "position": [620, 40]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are simulating the SAME two-step scenario but using mitigated (session-isolated) tools.\n\nSTEP 1 — Developer action:\nCall mcp01_store_secret_mitigated with:\n  - session_id = 'dev-session-001'\n  - secret_name = 'openai_api_key'\n  - secret_value = 'sk-prod-FAKE1234abcd5678efgh9012ijkl3456mnop7890'\n\nSTEP 2 — Attacker action (different session):\nCall mcp01_recall_context_mitigated with:\n  - session_id = 'attacker-session-999'\nReport exactly what was returned.\n\nFinally, summarize: Was the attacker able to retrieve the developer's secret? What mitigation prevented the leakage?",
+        "options": {
+          "systemMessage": "You are a security demonstration assistant for OWASP MCP Top 10. Follow the exact steps, call tools in order, and report raw outputs faithfully. Label output as [MITIGATED DEMONSTRATION]."
+        }
+      },
+      "id": "aaaaaaaa-0001-0001-0003-000000000002",
+      "name": "Mitigated Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [500, 440]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "id": "aaaaaaaa-0001-0001-0004-000000000002",
+      "name": "OpenAI (Mitigated)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [380, 580],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "https://YOUR_RAILWAY_URL.railway.app/sse"
+      },
+      "id": "aaaaaaaa-0001-0001-0005-000000000002",
+      "name": "MCP Mitigated Tools",
+      "type": "@n8n/n8n-nodes-langchain.toolMcp",
+      "typeVersion": 1,
+      "position": [620, 580]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-vuln",
+              "name": "vulnerable_result",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "aaaaaaaa-0001-0001-0006-000000000001",
+      "name": "Format Vulnerable Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [780, 160]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-mit",
+              "name": "mitigated_result",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "aaaaaaaa-0001-0001-0006-000000000002",
+      "name": "Format Mitigated Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [780, 440]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "aaaaaaaa-0001-0001-0007-000000000001",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-scenario",
+              "name": "scenario",
+              "value": "MCP01 - Scenario A: Prompt Recall Exposure",
+              "type": "string"
+            },
+            {
+              "id": "assign-owasp-ref",
+              "name": "owasp_reference",
+              "value": "https://owasp.org/www-project-mcp-top-10/2025/MCP01-2025-Token-Mismanagement-and-Secret-Exposure",
+              "type": "string"
+            },
+            {
+              "id": "assign-attack",
+              "name": "attack_type",
+              "value": "Attacker calls recall_context to retrieve secrets stored by another session in shared persistent memory",
+              "type": "string"
+            },
+            {
+              "id": "assign-mitigation",
+              "name": "mitigation_applied",
+              "value": "Session-scoped ephemeral context — each session_id has isolated storage, cross-session read returns empty",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "aaaaaaaa-0001-0001-0008-000000000001",
+      "name": "Final Comparison Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1220, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [{"node": "Setup Scenario Data", "type": "main", "index": 0}]
+      ]
+    },
+    "Setup Scenario Data": {
+      "main": [
+        [
+          {"node": "Vulnerable Agent", "type": "main", "index": 0},
+          {"node": "Mitigated Agent", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "OpenAI (Vulnerable)": {
+      "ai_languageModel": [
+        [{"node": "Vulnerable Agent", "type": "ai_languageModel", "index": 0}]
+      ]
+    },
+    "MCP Vulnerable Tools": {
+      "ai_tool": [
+        [{"node": "Vulnerable Agent", "type": "ai_tool", "index": 0}]
+      ]
+    },
+    "OpenAI (Mitigated)": {
+      "ai_languageModel": [
+        [{"node": "Mitigated Agent", "type": "ai_languageModel", "index": 0}]
+      ]
+    },
+    "MCP Mitigated Tools": {
+      "ai_tool": [
+        [{"node": "Mitigated Agent", "type": "ai_tool", "index": 0}]
+      ]
+    },
+    "Vulnerable Agent": {
+      "main": [
+        [{"node": "Format Vulnerable Result", "type": "main", "index": 0}]
+      ]
+    },
+    "Mitigated Agent": {
+      "main": [
+        [{"node": "Format Mitigated Result", "type": "main", "index": 0}]
+      ]
+    },
+    "Format Vulnerable Result": {
+      "main": [
+        [{"node": "Merge Results", "type": "main", "index": 0}]
+      ]
+    },
+    "Format Mitigated Result": {
+      "main": [
+        [{"node": "Merge Results", "type": "main", "index": 1}]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [{"node": "Final Comparison Output", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "tags": [
+    {"name": "OWASP MCP Top 10"},
+    {"name": "MCP01"},
+    {"name": "Security Demo"}
+  ]
+}

@@ -1,0 +1,283 @@
+{
+  "name": "MCP01 - Scenario B: Log Scraping",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "bbbbbbbb-0001-0002-0001-000000000001",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-001",
+              "name": "fake_github_token",
+              "value": "ghp_FAKE1234567890abcdefghijklmnopqrstuvwxyz",
+              "type": "string"
+            },
+            {
+              "id": "assign-002",
+              "name": "api_endpoint",
+              "value": "https://api.github.com/repos/org/repo/contents",
+              "type": "string"
+            },
+            {
+              "id": "assign-003",
+              "name": "scenario",
+              "value": "MCP01 - Scenario B: Log Scraping",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "bbbbbbbb-0001-0002-0002-000000000001",
+      "name": "Setup Scenario Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are simulating a log scraping attack for MCP01 (Token Mismanagement).\n\nSTEP 1 — Developer action:\nCall mcp01_call_api_vulnerable with:\n  - api_token = 'ghp_FAKE1234567890abcdefghijklmnopqrstuvwxyz'\n  - endpoint = 'https://api.github.com/repos/org/repo/contents'\n\nSTEP 2 — Attacker action (read the logs):\nCall mcp01_get_logs_vulnerable with no arguments.\nReport the exact log output.\n\nSummarize: Was the GitHub token visible in the logs? What risk does this create?",
+        "options": {
+          "systemMessage": "You are a security demonstration assistant for OWASP MCP Top 10. Follow the exact steps, call tools in order, and report raw tool outputs faithfully. Label your output as [VULNERABLE DEMONSTRATION]."
+        }
+      },
+      "id": "bbbbbbbb-0001-0002-0003-000000000001",
+      "name": "Vulnerable Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [500, 160]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "id": "bbbbbbbb-0001-0002-0004-000000000001",
+      "name": "OpenAI (Vulnerable)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [380, 40],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "https://YOUR_RAILWAY_URL.railway.app/sse"
+      },
+      "id": "bbbbbbbb-0001-0002-0005-000000000001",
+      "name": "MCP Vulnerable Tools",
+      "type": "@n8n/n8n-nodes-langchain.toolMcp",
+      "typeVersion": 1,
+      "position": [620, 40]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are simulating the SAME log scraping scenario but using mitigated tools.\n\nSTEP 1 — Developer action:\nCall mcp01_call_api_mitigated with:\n  - api_token = 'ghp_FAKE1234567890abcdefghijklmnopqrstuvwxyz'\n  - endpoint = 'https://api.github.com/repos/org/repo/contents'\n\nSTEP 2 — Attacker reads logs:\nCall mcp01_get_logs_mitigated with no arguments.\nReport the exact log output.\n\nSummarize: Was the token visible? What redaction mechanism protected it?",
+        "options": {
+          "systemMessage": "You are a security demonstration assistant for OWASP MCP Top 10. Follow the exact steps, call tools in order, and report raw tool outputs faithfully. Label your output as [MITIGATED DEMONSTRATION]."
+        }
+      },
+      "id": "bbbbbbbb-0001-0002-0003-000000000002",
+      "name": "Mitigated Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [500, 440]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "id": "bbbbbbbb-0001-0002-0004-000000000002",
+      "name": "OpenAI (Mitigated)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [380, 580],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "https://YOUR_RAILWAY_URL.railway.app/sse"
+      },
+      "id": "bbbbbbbb-0001-0002-0005-000000000002",
+      "name": "MCP Mitigated Tools",
+      "type": "@n8n/n8n-nodes-langchain.toolMcp",
+      "typeVersion": 1,
+      "position": [620, 580]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-vuln",
+              "name": "vulnerable_result",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "bbbbbbbb-0001-0002-0006-000000000001",
+      "name": "Format Vulnerable Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [780, 160]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-mit",
+              "name": "mitigated_result",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "bbbbbbbb-0001-0002-0006-000000000002",
+      "name": "Format Mitigated Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [780, 440]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "bbbbbbbb-0001-0002-0007-000000000001",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-scenario",
+              "name": "scenario",
+              "value": "MCP01 - Scenario B: Log Scraping",
+              "type": "string"
+            },
+            {
+              "id": "assign-owasp-ref",
+              "name": "owasp_reference",
+              "value": "https://owasp.org/www-project-mcp-top-10/2025/MCP01-2025-Token-Mismanagement-and-Secret-Exposure",
+              "type": "string"
+            },
+            {
+              "id": "assign-attack",
+              "name": "attack_type",
+              "value": "Attacker with log read access retrieves API tokens logged in plaintext during tool calls",
+              "type": "string"
+            },
+            {
+              "id": "assign-mitigation",
+              "name": "mitigation_applied",
+              "value": "Regex-based token redaction before log write — all known token patterns replaced with [REDACTED]",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "bbbbbbbb-0001-0002-0008-000000000001",
+      "name": "Final Comparison Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1220, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [{"node": "Setup Scenario Data", "type": "main", "index": 0}]
+      ]
+    },
+    "Setup Scenario Data": {
+      "main": [
+        [
+          {"node": "Vulnerable Agent", "type": "main", "index": 0},
+          {"node": "Mitigated Agent", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "OpenAI (Vulnerable)": {
+      "ai_languageModel": [
+        [{"node": "Vulnerable Agent", "type": "ai_languageModel", "index": 0}]
+      ]
+    },
+    "MCP Vulnerable Tools": {
+      "ai_tool": [
+        [{"node": "Vulnerable Agent", "type": "ai_tool", "index": 0}]
+      ]
+    },
+    "OpenAI (Mitigated)": {
+      "ai_languageModel": [
+        [{"node": "Mitigated Agent", "type": "ai_languageModel", "index": 0}]
+      ]
+    },
+    "MCP Mitigated Tools": {
+      "ai_tool": [
+        [{"node": "Mitigated Agent", "type": "ai_tool", "index": 0}]
+      ]
+    },
+    "Vulnerable Agent": {
+      "main": [
+        [{"node": "Format Vulnerable Result", "type": "main", "index": 0}]
+      ]
+    },
+    "Mitigated Agent": {
+      "main": [
+        [{"node": "Format Mitigated Result", "type": "main", "index": 0}]
+      ]
+    },
+    "Format Vulnerable Result": {
+      "main": [
+        [{"node": "Merge Results", "type": "main", "index": 0}]
+      ]
+    },
+    "Format Mitigated Result": {
+      "main": [
+        [{"node": "Merge Results", "type": "main", "index": 1}]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [{"node": "Final Comparison Output", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "tags": [
+    {"name": "OWASP MCP Top 10"},
+    {"name": "MCP01"},
+    {"name": "Security Demo"}
+  ]
+}
