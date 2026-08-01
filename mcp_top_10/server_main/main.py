@@ -13,7 +13,7 @@ from fastmcp import FastMCP
 
 # ── Import scenario modules ───────────────────────────────────────────────────
 from scenarios import mcp01_token
-# from scenarios import mcp02_privilege   # Uncomment when MCP02 is ready
+from scenarios import mcp02_privilege
 # from scenarios import mcp04_supply      # Uncomment when MCP04 is ready
 # from scenarios import mcp06_intent      # Uncomment when MCP06 is ready
 # from scenarios import mcp07_auth        # Uncomment when MCP07 is ready
@@ -32,7 +32,7 @@ mcp = FastMCP(
 
 # ── Register scenario tools ───────────────────────────────────────────────────
 mcp01_token.register(mcp)
-# mcp02_privilege.register(mcp)   # Uncomment when ready
+mcp02_privilege.register(mcp)
 # mcp04_supply.register(mcp)
 # mcp06_intent.register(mcp)
 # mcp07_auth.register(mcp)
